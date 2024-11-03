@@ -1,0 +1,375 @@
+module LS502
+title '74LS502 emulator'
+
+" Try with GAL6001 first, since we need buried nodes
+ls502 device 'f6001';
+
+" Clocks
+ICLK pin 1;
+OCLK pin 13;
+
+" Inputs
+START pin 2;
+D pin 3;
+
+" Outputs
+Q0 pin 14 istype 'reg';
+Q1 pin 15 istype 'reg';
+Q2 pin 16 istype 'reg';
+Q3 pin 17 istype 'reg';
+Q4 pin 18 istype 'reg';
+Q5 pin 19 istype 'reg';
+Q6 pin 20 istype 'reg';
+Q7 pin 21 istype 'reg';
+Q_ALL = [Q7, Q6, Q5, Q4, Q3, Q2, Q1, Q0];
+QD pin 22 istype 'reg';
+CC pin 23 istype 'reg';
+
+st0 node 26 istype 'reg';
+st1 node 27 istype 'reg';
+st2 node 28 istype 'reg';
+st3 node 29 istype 'reg';
+Q_DELAY node 30 istype 'reg';
+
+" Constants and States
+X = .X.;
+ST = [st3, st2, st1, st0];
+S_INITIAL = [0, 0, 0, 0];
+S_IN_D7 = [0, 0, 0, 1];
+S_IN_D6 = [0, 0, 1, 1];
+S_IN_D5 = [0, 0, 1, 0];
+S_IN_D4 = [0, 1, 1, 0];
+S_IN_D3 = [0, 1, 1, 1];
+S_IN_D2 = [0, 1, 0, 1];
+S_IN_D1 = [0, 1, 0, 0];
+S_IN_D0 = [1, 1, 0, 0];
+S_FINAL = [1, 1, 1, 0];
+
+EQUATIONS
+ST.CLK = OCLK;
+ST.SR = !START;
+
+[QD, Q7, Q6, Q5, Q4, Q3, Q2, Q1, Q0].CLK = OCLK;
+Q_DELAY.CLK = OCLK;
+CC.CLK = OCLK;
+
+STATE_DIAGRAM ST
+  STATE S_INITIAL:
+"    QD := D;
+
+    IF START == 0 THEN S_INITIAL
+    ELSE S_IN_D7 WITH
+      Q_DELAY := D;
+      Q7 := 0;
+      Q6 := 1;
+      Q5 := 1;
+      Q4 := 1;
+      Q3 := 1;
+      Q2 := 1;
+      Q1 := 1;
+      Q0 := 1;
+      CC := 1;
+    ENDWITH;
+
+  STATE S_IN_D7:
+    Q_DELAY := D;
+    QD := Q_DELAY;
+    Q7 := Q_DELAY;
+    Q6 := 0;
+    Q5 := 1;
+    Q4 := 1;
+    Q3 := 1;
+    Q2 := 1;
+    Q1 := 1;
+    Q0 := 1;
+    CC := 1;
+    IF START == 0 THEN S_INITIAL
+                  ELSE S_IN_D6;
+
+  STATE S_IN_D6:
+    Q_DELAY := D;
+    QD := Q_DELAY;
+    Q7 := Q7;
+    Q6 := Q_DELAY;
+    Q5 := 0;
+    Q4 := 1;
+    Q3 := 1;
+    Q2 := 1;
+    Q1 := 1;
+    Q0 := 1;
+    CC := 1;
+    IF START == 0 THEN S_INITIAL
+                  ELSE S_IN_D5;
+
+  STATE S_IN_D5:
+    Q_DELAY := D;
+    QD := Q_DELAY;
+    Q7 := Q7;
+    Q6 := Q6;
+    Q5 := Q_DELAY;
+    Q4 := 0;
+    Q3 := 1;
+    Q2 := 1;
+    Q1 := 1;
+    Q0 := 1;
+    CC := 1;
+    IF START == 0 THEN S_INITIAL
+                  ELSE S_IN_D4;
+
+  STATE S_IN_D4:
+    Q_DELAY := D;
+    QD := Q_DELAY;
+    Q7 := Q7;
+    Q6 := Q6;
+    Q5 := Q5;
+    Q4 := Q_DELAY;
+    Q3 := 0;
+    Q2 := 1;
+    Q1 := 1;
+    Q0 := 1;
+    CC := 1;
+    IF START == 0 THEN S_INITIAL
+                  ELSE S_IN_D3;
+
+  STATE S_IN_D3:
+    Q_DELAY := D;
+    QD := Q_DELAY;
+    Q7 := Q7;
+    Q6 := Q6;
+    Q5 := Q5;
+    Q4 := Q4;
+    Q3 := Q_DELAY;
+    Q2 := 0;
+    Q1 := 1;
+    Q0 := 1;
+    CC := 1;
+    IF START == 0 THEN S_INITIAL
+                  ELSE S_IN_D2;
+
+  STATE S_IN_D2:
+    Q_DELAY := D;
+    QD := Q_DELAY;
+    Q7 := Q7;
+    Q6 := Q6;
+    Q5 := Q5;
+    Q4 := Q4;
+    Q3 := Q3;
+    Q2 := Q_DELAY;
+    Q1 := 0;
+    Q0 := 1;
+    CC := 1;
+    IF START == 0 THEN S_INITIAL
+                  ELSE S_IN_D1;
+
+  STATE S_IN_D1:
+    Q_DELAY := D;
+    QD := Q_DELAY;
+    Q7 := Q7;
+    Q6 := Q6;
+    Q5 := Q5;
+    Q4 := Q4;
+    Q3 := Q3;
+    Q2 := Q2;
+    Q1 := Q_DELAY;
+    Q0 := 0;
+    CC := 1;
+    IF START == 0 THEN S_INITIAL
+                  ELSE S_IN_D0;
+
+  STATE S_IN_D0:
+    Q_DELAY := D;
+    QD := Q_DELAY;
+    Q7 := Q7;
+    Q6 := Q6;
+    Q5 := Q5;
+    Q4 := Q4;
+    Q3 := Q3;
+    Q2 := Q2;
+    Q1 := Q1;
+    Q0 := Q_DELAY;
+    CC := 0;
+    IF START == 0 THEN S_INITIAL
+                  ELSE S_FINAL;
+
+  STATE S_FINAL:
+    Q_DELAY := D;
+    QD := Q_DELAY;
+    Q7 := Q7;
+    Q6 := Q6;
+    Q5 := Q5;
+    Q4 := Q4;
+    Q3 := Q3;
+    Q2 := Q2;
+    Q1 := Q1;
+    Q0 := Q0;
+    CC := 0;
+    IF START == 0 THEN S_INITIAL
+                  ELSE S_FINAL;
+
+TEST_VECTORS 'Happy path for complete acquisition of all highs'
+  ( [OCLK, START, D] -> [Q_DELAY, QD, Q7, Q6, Q5, Q4, Q3, Q2, Q1, Q0, CC, ST] )
+    [ .C.,     0, X] -> [ X, X,  X,  X,  X,  X,  X,  X,  X,  X,  X, S_INITIAL];
+    [ .C.,     1, 1] -> [ 1, X,  0,  1,  1,  1,  1,  1,  1,  1,  1, S_IN_D7];
+    [ .C.,     1, 1] -> [ 1, 1,  1,  0,  1,  1,  1,  1,  1,  1,  1, S_IN_D6];
+    [ .C.,     1, 1] -> [ 1, 1,  1,  1,  0,  1,  1,  1,  1,  1,  1, S_IN_D5];
+    [ .C.,     1, 1] -> [ 1, 1,  1,  1,  1,  0,  1,  1,  1,  1,  1, S_IN_D4];
+    [ .C.,     1, 1] -> [ 1, 1,  1,  1,  1,  1,  0,  1,  1,  1,  1, S_IN_D3];
+    [ .C.,     1, 1] -> [ 1, 1,  1,  1,  1,  1,  1,  0,  1,  1,  1, S_IN_D2];
+    [ .C.,     1, 1] -> [ 1, 1,  1,  1,  1,  1,  1,  1,  0,  1,  1, S_IN_D1];
+    [ .C.,     1, 1] -> [ 1, 1,  1,  1,  1,  1,  1,  1,  1,  0,  1, S_IN_D0];
+    [ .C.,     1, 1] -> [ 1, 1,  1,  1,  1,  1,  1,  1,  1,  1,  0, S_FINAL];
+    [ .C.,     1, 0] -> [ X, 1,  1,  1,  1,  1,  1,  1,  1,  1,  0, S_FINAL];
+    [ .C.,     1, X] -> [ X, X,  1,  1,  1,  1,  1,  1,  1,  1,  0, S_FINAL];
+
+TEST_VECTORS 'Happy path for complete acquisition of all lows'
+  ( [OCLK, START, D] -> [Q_DELAY, QD, Q7, Q6, Q5, Q4, Q3, Q2, Q1, Q0, CC, ST] )
+    [ .C.,     0, X] -> [ X, X,  X,  X,  X,  X,  X,  X,  X,  X,  X, S_INITIAL];
+    [ .C.,     1, 0] -> [ 0, X,  0,  1,  1,  1,  1,  1,  1,  1,  1, S_IN_D7];
+    [ .C.,     1, 0] -> [ 0, 0,  0,  0,  1,  1,  1,  1,  1,  1,  1, S_IN_D6];
+    [ .C.,     1, 0] -> [ 0, 0,  0,  0,  0,  1,  1,  1,  1,  1,  1, S_IN_D5];
+    [ .C.,     1, 0] -> [ 0, 0,  0,  0,  0,  0,  1,  1,  1,  1,  1, S_IN_D4];
+    [ .C.,     1, 0] -> [ 0, 0,  0,  0,  0,  0,  0,  1,  1,  1,  1, S_IN_D3];
+    [ .C.,     1, 0] -> [ 0, 0,  0,  0,  0,  0,  0,  0,  1,  1,  1, S_IN_D2];
+    [ .C.,     1, 0] -> [ 0, 0,  0,  0,  0,  0,  0,  0,  0,  1,  1, S_IN_D1];
+    [ .C.,     1, 0] -> [ 0, 0,  0,  0,  0,  0,  0,  0,  0,  0,  1, S_IN_D0];
+    [ .C.,     1, 0] -> [ 0, 0,  0,  0,  0,  0,  0,  0,  0,  0,  0, S_FINAL];
+    [ .C.,     1, 1] -> [ X, 0,  0,  0,  0,  0,  0,  0,  0,  0,  0, S_FINAL];
+    [ .C.,     1, X] -> [ X, X,  0,  0,  0,  0,  0,  0,  0,  0,  0, S_FINAL];
+
+TEST_VECTORS 'Happy path for complete acquisition of alternating bits'
+  ( [OCLK, START, D] -> [Q_DELAY, QD, Q7, Q6, Q5, Q4, Q3, Q2, Q1, Q0, CC, ST] )
+    [ .C.,     0, X] -> [ X, X,  X,  X,  X,  X,  X,  X,  X,  X,  X, S_INITIAL];
+    [ .C.,     1, 0] -> [ 0, X,  0,  1,  1,  1,  1,  1,  1,  1,  1, S_IN_D7];
+    [ .C.,     1, 1] -> [ 1, 0,  0,  0,  1,  1,  1,  1,  1,  1,  1, S_IN_D6];
+    [ .C.,     1, 0] -> [ 0, 1,  0,  1,  0,  1,  1,  1,  1,  1,  1, S_IN_D5];
+    [ .C.,     1, 1] -> [ 1, 0,  0,  1,  0,  0,  1,  1,  1,  1,  1, S_IN_D4];
+    [ .C.,     1, 0] -> [ 0, 1,  0,  1,  0,  1,  0,  1,  1,  1,  1, S_IN_D3];
+    [ .C.,     1, 1] -> [ 1, 0,  0,  1,  0,  1,  0,  0,  1,  1,  1, S_IN_D2];
+    [ .C.,     1, 0] -> [ 0, 1,  0,  1,  0,  1,  0,  1,  0,  1,  1, S_IN_D1];
+    [ .C.,     1, 1] -> [ 1, 0,  0,  1,  0,  1,  0,  1,  0,  0,  1, S_IN_D0];
+    [ .C.,     1, 0] -> [ 0, 1,  0,  1,  0,  1,  0,  1,  0,  1,  0, S_FINAL];
+    [ .C.,     1, 1] -> [ X, 0,  0,  1,  0,  1,  0,  1,  0,  1,  0, S_FINAL];
+    [ .C.,     1, X] -> [ X, X,  0,  1,  0,  1,  0,  1,  0,  1,  0, S_FINAL];
+
+TEST_VECTORS 'Happy path for complete acquisition of inverse alternating bits'
+  ( [OCLK, START, D] -> [Q_DELAY, QD, Q7, Q6, Q5, Q4, Q3, Q2, Q1, Q0, CC, ST] )
+    [ .C.,     0, X] -> [ X, X,  X,  X,  X,  X,  X,  X,  X,  X,  X, S_INITIAL];
+    [ .C.,     1, 1] -> [ 1, X,  0,  1,  1,  1,  1,  1,  1,  1,  1, S_IN_D7];
+    [ .C.,     1, 0] -> [ 0, 1,  1,  0,  1,  1,  1,  1,  1,  1,  1, S_IN_D6];
+    [ .C.,     1, 1] -> [ 1, 0,  1,  0,  0,  1,  1,  1,  1,  1,  1, S_IN_D5];
+    [ .C.,     1, 0] -> [ 0, 1,  1,  0,  1,  0,  1,  1,  1,  1,  1, S_IN_D4];
+    [ .C.,     1, 1] -> [ 1, 0,  1,  0,  1,  0,  0,  1,  1,  1,  1, S_IN_D3];
+    [ .C.,     1, 0] -> [ 0, 1,  1,  0,  1,  0,  1,  0,  1,  1,  1, S_IN_D2];
+    [ .C.,     1, 1] -> [ 1, 0,  1,  0,  1,  0,  1,  0,  0,  1,  1, S_IN_D1];
+    [ .C.,     1, 0] -> [ 0, 1,  1,  0,  1,  0,  1,  0,  1,  0,  1, S_IN_D0];
+    [ .C.,     1, 1] -> [ 1, 0,  1,  0,  1,  0,  1,  0,  1,  0,  0, S_FINAL];
+    [ .C.,     1, 0] -> [ X, 1,  1,  0,  1,  0,  1,  0,  1,  0,  0, S_FINAL];
+    [ .C.,     1, X] -> [ X, X,  1,  0,  1,  0,  1,  0,  1,  0,  0, S_FINAL];
+
+TEST_VECTORS 'Reset in S_INITIAL'
+  ( [OCLK, START, D] -> [Q_DELAY, QD, Q7, Q6, Q5, Q4, Q3, Q2, Q1, Q0, CC, ST] )
+    [ .C.,     0, X] -> [ X, X,  X,  X,  X,  X,  X,  X,  X,  X,  X, S_INITIAL];
+    [ .C.,     0, X] -> [ X, X,  X,  X,  X,  X,  X,  X,  X,  X,  X, S_INITIAL];
+    [ .C.,     1, 1] -> [ 1, X,  0,  1,  1,  1,  1,  1,  1,  1,  1, S_IN_D7];
+
+TEST_VECTORS 'Reset in S_IN_D7'
+  ( [OCLK, START, D] -> [Q_DELAY, QD, Q7, Q6, Q5, Q4, Q3, Q2, Q1, Q0, CC, ST] )
+    [ .C.,     0, X] -> [ X, X,  X,  X,  X,  X,  X,  X,  X,  X,  X, S_INITIAL];
+    [ .C.,     1, 1] -> [ 1, X,  0,  1,  1,  1,  1,  1,  1,  1,  1, S_IN_D7];
+    [ .C.,     0, X] -> [ X, X,  X,  X,  X,  X,  X,  X,  X,  X,  X, S_INITIAL];
+    [ .C.,     1, 1] -> [ 1, X,  0,  1,  1,  1,  1,  1,  1,  1,  1, S_IN_D7];
+
+TEST_VECTORS 'Reset in S_IN_D6'
+  ( [OCLK, START, D] -> [Q_DELAY, QD, Q7, Q6, Q5, Q4, Q3, Q2, Q1, Q0, CC, ST] )
+    [ .C.,     0, X] -> [ X, X,  X,  X,  X,  X,  X,  X,  X,  X,  X, S_INITIAL];
+    [ .C.,     1, 1] -> [ 1, X,  0,  1,  1,  1,  1,  1,  1,  1,  1, S_IN_D7];
+    [ .C.,     1, 1] -> [ 1, 1,  1,  0,  1,  1,  1,  1,  1,  1,  1, S_IN_D6];
+    [ .C.,     0, X] -> [ X, X,  X,  X,  X,  X,  X,  X,  X,  X,  X, S_INITIAL];
+    [ .C.,     1, 1] -> [ 1, X,  0,  1,  1,  1,  1,  1,  1,  1,  1, S_IN_D7];
+
+
+TEST_VECTORS 'Reset in S_IN_D5'
+  ( [OCLK, START, D] -> [Q_DELAY, QD, Q7, Q6, Q5, Q4, Q3, Q2, Q1, Q0, CC, ST] )
+    [ .C.,     0, X] -> [ X, X,  X,  X,  X,  X,  X,  X,  X,  X,  X, S_INITIAL];
+    [ .C.,     1, 1] -> [ 1, X,  0,  1,  1,  1,  1,  1,  1,  1,  1, S_IN_D7];
+    [ .C.,     1, 1] -> [ 1, 1,  1,  0,  1,  1,  1,  1,  1,  1,  1, S_IN_D6];
+    [ .C.,     1, 1] -> [ 1, 1,  1,  1,  0,  1,  1,  1,  1,  1,  1, S_IN_D5];
+    [ .C.,     0, X] -> [ X, X,  X,  X,  X,  X,  X,  X,  X,  X,  X, S_INITIAL];
+    [ .C.,     1, 1] -> [ 1, X,  0,  1,  1,  1,  1,  1,  1,  1,  1, S_IN_D7];
+
+TEST_VECTORS 'Reset in S_IN_D4'
+  ( [OCLK, START, D] -> [Q_DELAY, QD, Q7, Q6, Q5, Q4, Q3, Q2, Q1, Q0, CC, ST] )
+    [ .C.,     0, X] -> [ X, X,  X,  X,  X,  X,  X,  X,  X,  X,  X, S_INITIAL];
+    [ .C.,     1, 1] -> [ 1, X,  0,  1,  1,  1,  1,  1,  1,  1,  1, S_IN_D7];
+    [ .C.,     1, 1] -> [ 1, 1,  1,  0,  1,  1,  1,  1,  1,  1,  1, S_IN_D6];
+    [ .C.,     1, 1] -> [ 1, 1,  1,  1,  0,  1,  1,  1,  1,  1,  1, S_IN_D5];
+    [ .C.,     1, 1] -> [ 1, 1,  1,  1,  1,  0,  1,  1,  1,  1,  1, S_IN_D4];
+    [ .C.,     0, X] -> [ X, X,  X,  X,  X,  X,  X,  X,  X,  X,  X, S_INITIAL];
+    [ .C.,     1, 1] -> [ 1, X,  0,  1,  1,  1,  1,  1,  1,  1,  1, S_IN_D7];
+
+TEST_VECTORS 'Reset in S_IN_D3'
+  ( [OCLK, START, D] -> [Q_DELAY, QD, Q7, Q6, Q5, Q4, Q3, Q2, Q1, Q0, CC, ST] )
+    [ .C.,     0, X] -> [ X, X,  X,  X,  X,  X,  X,  X,  X,  X,  X, S_INITIAL];
+    [ .C.,     1, 1] -> [ 1, X,  0,  1,  1,  1,  1,  1,  1,  1,  1, S_IN_D7];
+    [ .C.,     1, 1] -> [ 1, 1,  1,  0,  1,  1,  1,  1,  1,  1,  1, S_IN_D6];
+    [ .C.,     1, 1] -> [ 1, 1,  1,  1,  0,  1,  1,  1,  1,  1,  1, S_IN_D5];
+    [ .C.,     1, 1] -> [ 1, 1,  1,  1,  1,  0,  1,  1,  1,  1,  1, S_IN_D4];
+    [ .C.,     1, 1] -> [ 1, 1,  1,  1,  1,  1,  0,  1,  1,  1,  1, S_IN_D3];
+    [ .C.,     0, X] -> [ X, X,  X,  X,  X,  X,  X,  X,  X,  X,  X, S_INITIAL];
+    [ .C.,     1, 1] -> [ 1, X,  0,  1,  1,  1,  1,  1,  1,  1,  1, S_IN_D7];
+
+TEST_VECTORS 'Reset after S_IN_D2'
+  ( [OCLK, START, D] -> [Q_DELAY, QD, Q7, Q6, Q5, Q4, Q3, Q2, Q1, Q0, CC, ST] )
+    [ .C.,     0, X] -> [ X, X,  X,  X,  X,  X,  X,  X,  X,  X,  X, S_INITIAL];
+    [ .C.,     1, 1] -> [ 1, X,  0,  1,  1,  1,  1,  1,  1,  1,  1, S_IN_D7];
+    [ .C.,     1, 1] -> [ 1, 1,  1,  0,  1,  1,  1,  1,  1,  1,  1, S_IN_D6];
+    [ .C.,     1, 1] -> [ 1, 1,  1,  1,  0,  1,  1,  1,  1,  1,  1, S_IN_D5];
+    [ .C.,     1, 1] -> [ 1, 1,  1,  1,  1,  0,  1,  1,  1,  1,  1, S_IN_D4];
+    [ .C.,     1, 1] -> [ 1, 1,  1,  1,  1,  1,  0,  1,  1,  1,  1, S_IN_D3];
+    [ .C.,     1, 1] -> [ 1, 1,  1,  1,  1,  1,  1,  0,  1,  1,  1, S_IN_D2];
+    [ .C.,     0, X] -> [ X, X,  X,  X,  X,  X,  X,  X,  X,  X,  X, S_INITIAL];
+    [ .C.,     1, 1] -> [ 1, X,  0,  1,  1,  1,  1,  1,  1,  1,  1, S_IN_D7];
+
+TEST_VECTORS 'Reset after S_IN_D1'
+  ( [OCLK, START, D] -> [Q_DELAY, QD, Q7, Q6, Q5, Q4, Q3, Q2, Q1, Q0, CC, ST] )
+    [ .C.,     0, X] -> [ X, X,  X,  X,  X,  X,  X,  X,  X,  X,  X, S_INITIAL];
+    [ .C.,     1, 1] -> [ 1, X,  0,  1,  1,  1,  1,  1,  1,  1,  1, S_IN_D7];
+    [ .C.,     1, 1] -> [ 1, 1,  1,  0,  1,  1,  1,  1,  1,  1,  1, S_IN_D6];
+    [ .C.,     1, 1] -> [ 1, 1,  1,  1,  0,  1,  1,  1,  1,  1,  1, S_IN_D5];
+    [ .C.,     1, 1] -> [ 1, 1,  1,  1,  1,  0,  1,  1,  1,  1,  1, S_IN_D4];
+    [ .C.,     1, 1] -> [ 1, 1,  1,  1,  1,  1,  0,  1,  1,  1,  1, S_IN_D3];
+    [ .C.,     1, 1] -> [ 1, 1,  1,  1,  1,  1,  1,  0,  1,  1,  1, S_IN_D2];
+    [ .C.,     1, 1] -> [ 1, 1,  1,  1,  1,  1,  1,  1,  0,  1,  1, S_IN_D1];
+    [ .C.,     0, X] -> [ X, X,  X,  X,  X,  X,  X,  X,  X,  X,  X, S_INITIAL];
+    [ .C.,     1, 1] -> [ 1, X,  0,  1,  1,  1,  1,  1,  1,  1,  1, S_IN_D7];
+
+TEST_VECTORS 'Reset after S_IN_D0'
+  ( [OCLK, START, D] -> [Q_DELAY, QD, Q7, Q6, Q5, Q4, Q3, Q2, Q1, Q0, CC, ST] )
+    [ .C.,     0, X] -> [ X, X,  X,  X,  X,  X,  X,  X,  X,  X,  X, S_INITIAL];
+    [ .C.,     1, 1] -> [ 1, X,  0,  1,  1,  1,  1,  1,  1,  1,  1, S_IN_D7];
+    [ .C.,     1, 1] -> [ 1, 1,  1,  0,  1,  1,  1,  1,  1,  1,  1, S_IN_D6];
+    [ .C.,     1, 1] -> [ 1, 1,  1,  1,  0,  1,  1,  1,  1,  1,  1, S_IN_D5];
+    [ .C.,     1, 1] -> [ 1, 1,  1,  1,  1,  0,  1,  1,  1,  1,  1, S_IN_D4];
+    [ .C.,     1, 1] -> [ 1, 1,  1,  1,  1,  1,  0,  1,  1,  1,  1, S_IN_D3];
+    [ .C.,     1, 1] -> [ 1, 1,  1,  1,  1,  1,  1,  0,  1,  1,  1, S_IN_D2];
+    [ .C.,     1, 1] -> [ 1, 1,  1,  1,  1,  1,  1,  1,  0,  1,  1, S_IN_D1];
+    [ .C.,     1, 1] -> [ 1, 1,  1,  1,  1,  1,  1,  1,  1,  0,  1, S_IN_D0];
+    [ .C.,     0, X] -> [ X, X,  X,  X,  X,  X,  X,  X,  X,  X,  X, S_INITIAL];
+    [ .C.,     1, 1] -> [ 1, X,  0,  1,  1,  1,  1,  1,  1,  1,  1, S_IN_D7];
+
+TEST_VECTORS 'Reset in S_FINAL'
+  ( [OCLK, START, D] -> [Q_DELAY, QD, Q7, Q6, Q5, Q4, Q3, Q2, Q1, Q0, CC, ST] )
+    [ .C.,     0, X] -> [ X, X,  X,  X,  X,  X,  X,  X,  X,  X,  X, S_INITIAL];
+    [ .C.,     1, 1] -> [ 1, X,  0,  1,  1,  1,  1,  1,  1,  1,  1, S_IN_D7];
+    [ .C.,     1, 1] -> [ 1, 1,  1,  0,  1,  1,  1,  1,  1,  1,  1, S_IN_D6];
+    [ .C.,     1, 1] -> [ 1, 1,  1,  1,  0,  1,  1,  1,  1,  1,  1, S_IN_D5];
+    [ .C.,     1, 1] -> [ 1, 1,  1,  1,  1,  0,  1,  1,  1,  1,  1, S_IN_D4];
+    [ .C.,     1, 1] -> [ 1, 1,  1,  1,  1,  1,  0,  1,  1,  1,  1, S_IN_D3];
+    [ .C.,     1, 1] -> [ 1, 1,  1,  1,  1,  1,  1,  0,  1,  1,  1, S_IN_D2];
+    [ .C.,     1, 1] -> [ 1, 1,  1,  1,  1,  1,  1,  1,  0,  1,  1, S_IN_D1];
+    [ .C.,     1, 1] -> [ 1, 1,  1,  1,  1,  1,  1,  1,  1,  0,  1, S_IN_D0];
+    [ .C.,     1, 1] -> [ 1, 1,  1,  1,  1,  1,  1,  1,  1,  1,  0, S_FINAL];
+    [ .C.,     0, X] -> [ X, X,  X,  X,  X,  X,  X,  X,  X,  X,  X, S_INITIAL];
+    [ .C.,     1, 1] -> [ 1, X,  0,  1,  1,  1,  1,  1,  1,  1,  1, S_IN_D7];
+
+END;
